@@ -1,7 +1,7 @@
 {
-  "task": "swinir_denoising_color_25_0"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
+  "task": "swinir_denoising_color_25_randon_noise_every_iter"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
   , "model": "plain" // "plain" | "plain2" if two inputs
-  , "gpu_ids": [0]
+  , "gpu_ids": [3]
   , "dist": true
 
   , "n_channels": 3  // broadcast to "datasets", 1 for grayscale, 3 for color

@@ -140,19 +140,20 @@ class DatasetDnCNNDIP(DatasetDnCNN):
             # --------------------------------
             # randomly crop the patch
             # --------------------------------
-            rnd_h = random.randint(0, max(0, H - self.patch_size))
-            rnd_w = random.randint(0, max(0, W - self.patch_size))
-
-            img_GT = self.GT[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
-            img_H = self.GT.clone().add_(self.noise).detach()[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
-            img_L = self.net_input[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
+            # rnd_h = random.randint(0, max(0, H - self.patch_size))
+            # rnd_w = random.randint(0, max(0, W - self.patch_size))
+            #
+            # img_GT = self.GT[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
+            # img_H = self.GT.clone().add_(self.noise).detach()[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
+            # img_L = self.net_input[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
 
             # --------------------------------
             # For using resize
             # --------------------------------
-            # img_GT = self.GT
-            # img_H = img_GT.clone().add_(self.noise).detach()
-            # img_L = self.net_input
+            img_GT = self.GT
+            noise = torch.randn(*self.GT.shape).mul_(self.sigma / 255.0).detach()
+            img_H = img_GT.clone().add_(noise).detach()
+            img_L = self.net_input
 
             # ------------------------------------------
             # Split the images to 4 patch sizes
