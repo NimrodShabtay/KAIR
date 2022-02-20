@@ -108,7 +108,7 @@ class DatasetDnCNNDIP(DatasetDnCNN):
         super(DatasetDnCNNDIP, self).__init__(opt)
         self.H_path = ['./trainsets/trainH/F16_GT.png',  './trainsets/trainH/kate.png'][0]
         self.GT = util.imread_uint(self.H_path, self.n_channels)
-        # self.GT = cv2.resize(self.GT, (self.patch_size, self.patch_size), interpolation=cv2.INTER_LANCZOS4)
+        self.GT = cv2.resize(self.GT, (256, 256), interpolation=cv2.INTER_LANCZOS4)
         self.GT = util.uint2tensor3(self.GT).detach()
         self.net_input = get_noise(self.n_channels, 'noise', (self.GT.shape[1], self.GT.shape[2])).detach()
         self.noise = torch.randn(*self.GT.shape).mul_(self.sigma / 255.0).detach()
@@ -140,31 +140,32 @@ class DatasetDnCNNDIP(DatasetDnCNN):
             # --------------------------------
             # randomly crop the patch
             # --------------------------------
-            # rnd_h = random.randint(0, max(0, H - self.patch_size))
-            # rnd_w = random.randint(0, max(0, W - self.patch_size))
-            #
-            # img_GT = self.GT[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
-            # img_H = self.GT.clone().add_(self.noise).detach()[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
-            # img_L = self.net_input[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
+            rnd_h = random.randint(0, max(0, H - self.patch_size))
+            rnd_w = random.randint(0, max(0, W - self.patch_size))
+
+            img_GT = self.GT[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
+            img_H = self.GT.clone().add_(self.noise).detach()[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
+            img_L = self.net_input[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
 
             # --------------------------------
             # For using resize
             # --------------------------------
-            img_GT = self.GT
-            noise = torch.randn(*self.GT.shape).mul_(self.sigma / 255.0).detach()
-            img_H = img_GT.clone().add_(noise).detach()
-            img_L = self.net_input
+            # img_GT = self.GT
+            # img_H = img_GT.clone().add_(self.noise).detach()
+            # img_L = self.net_input
 
             # ------------------------------------------
             # Split the images to 4 patch sizes
             # ------------------------------------------
-            # kernel_size, stride = self.patch_size, self.patch_size
-            # patches = torch.torch.from_numpy(img_H).permute(2, 0, 1).unfold(1, kernel_size, stride).unfold(2, kernel_size, stride)
-            # patches = patches.contiguous().view(patches.size(0), -1, kernel_size, kernel_size)
-            # patch_H = patches[:, index].permute(1, 2, 0).numpy()
-            #
-            # noise_patches = net_input_H.unfold(1, kernel_size, stride).unfold(2, kernel_size, stride)
-            # noise_patches = noise_patches.contiguous().view(noise_patches.size(0), -1, kernel_size, kernel_size)
-            # net_input = noise_patches[:, index]
+            img_GT = self.GT[:, (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
+                     (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
+            img_H = self.GT.clone().add_(self.noise).detach()[:,
+                    (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
+                    (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
+            img_L = self.net_input[:, (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
+                     (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
 
         return {'L': img_L, 'H': img_H, 'GT': img_GT, 'H_path': GT_path, 'L_path': L_path}
+
+    def __len__(self):
+        return max(len(self.paths_H), self.opt['dataloader_batch_size'])

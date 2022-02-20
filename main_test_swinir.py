@@ -6,9 +6,11 @@ from collections import OrderedDict
 import os
 import torch
 import requests
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 from models.network_swinir import SwinIR as net
 from utils import utils_image as util
+from utils.dip_utils import get_noise
 
 
 def main():
@@ -16,7 +18,7 @@ def main():
     parser.add_argument('--task', type=str, default='color_dn', help='classical_sr, lightweight_sr, real_sr, '
                                                                      'gray_dn, color_dn, jpeg_car')
     parser.add_argument('--scale', type=int, default=1, help='scale factor: 1, 2, 3, 4, 8') # 1 for dn and jpeg car
-    parser.add_argument('--noise', type=int, default=15, help='noise level: 15, 25, 50')
+    parser.add_argument('--noise', type=int, default=25, help='noise level: 15, 25, 50')
     parser.add_argument('--jpeg', type=int, default=40, help='scale factor: 10, 20, 30, 40')
     parser.add_argument('--training_patch_size', type=int, default=128, help='patch size used in training SwinIR. '
                                        'Just used to differentiate two different settings in Table 2 of the paper. '
@@ -59,8 +61,9 @@ def main():
     for idx, path in enumerate(sorted(glob.glob(os.path.join(folder, '*')))):
         # read image
         imgname, img_lq, img_gt = get_image_pair(args, path)  # image to HWC-BGR, float32
-        img_lq = np.transpose(img_lq if img_lq.shape[2] == 1 else img_lq[:, :, [2, 1, 0]], (2, 0, 1))  # HCW-BGR to CHW-RGB
-        img_lq = torch.from_numpy(img_lq).float().unsqueeze(0).to(device)  # CHW-RGB to NCHW-RGB
+        # img_lq = np.transpose(img_lq if img_lq.shape[2] == 1 else img_lq[:, :, [2, 1, 0]], (2, 0, 1))  # HCW-BGR to CHW-RGB
+        # img_lq = torch.from_numpy(img_lq).float().unsqueeze(0).to(device)  # CHW-RGB to NCHW-RGB
+        img_lq = get_noise(img_gt.shape[2], 'noise', (img_gt.shape[0], img_gt.shape[1])).unsqueeze(0).to(device)
 
         # inference
         with torch.no_grad():
@@ -161,8 +164,8 @@ def define_model(args):
 
     # 005 color image denoising
     elif args.task == 'color_dn':
-        model = net(upscale=1, in_chans=3, img_size=128, window_size=8,
-                    img_range=1., depths=[6, 6, 6, 6, 6, 6], embed_dim=180, num_heads=[6, 6, 6, 6, 6, 6],
+        model = net(upscale=1, in_chans=3, img_size=512, window_size=8,
+                    img_range=1., depths=[6, 6, 6], embed_dim=90, num_heads=[6, 6, 6],
                     mlp_ratio=2, upsampler='', resi_connection='1conv')
         param_key_g = 'params'
 

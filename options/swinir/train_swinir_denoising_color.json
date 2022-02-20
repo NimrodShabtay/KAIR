@@ -1,7 +1,7 @@
 {
-  "task": "swinir_denoising_color_25_randon_noise_every_iter"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
+  "task": "random_crops_mid_capacity_no_batch"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
   , "model": "plain" // "plain" | "plain2" if two inputs
-  , "gpu_ids": [3]
+  , "gpu_ids": [1]
   , "dist": true
 
   , "n_channels": 3  // broadcast to "datasets", 1 for grayscale, 3 for color
@@ -23,9 +23,9 @@
       , "sigma": 25                     //  15 | 25 | 50. We fine-tune sigma=25/50 models from sigma=15 model, so that `G_optimizer_lr` and `G_scheduler_milestones` can be halved to save time.
       , "sigma_test": 25                //
 
-      , "dataloader_shuffle": true
+      , "dataloader_shuffle": false
       , "dataloader_num_workers": 0
-      , "dataloader_batch_size": 1      // batch size 1 | 16 | 32 | 48 | 64 | 128. Total batch size =1x8=8 in SwinIR
+      , "dataloader_batch_size": 4      // batch size 1 | 16 | 32 | 48 | 64 | 128. Total batch size =1x8=8 in SwinIR
     }
   }
 
@@ -33,7 +33,7 @@
     "net_type": "swinir" 
     , "upscale": 1 
     , "in_chans": 3
-    , "img_size": 512
+    , "img_size": 256
     , "window_size": 8  
     , "img_range": 1.0 
     , "depths": [6, 6, 6]
@@ -70,7 +70,7 @@
     , "E_param_strict": true
 
     , "checkpoint_test": 100           // for testing
-    , "checkpoint_save": 50000           // for saving model
+    , "checkpoint_save": 5000           // for saving model
     , "checkpoint_print": 100           // for print
   }
 }

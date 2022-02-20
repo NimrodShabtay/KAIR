@@ -5,6 +5,8 @@ import time
 import random
 import numpy as np
 from collections import OrderedDict
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 import logging
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
@@ -248,7 +250,7 @@ def main(json_path='options/train_msrresnet_psnr.json'):
                 logger.info('PSNR-GT: {:->4d}--> {:>10s} | {:<4.2f}dB'.format(idx, image_name_ext, psnr_gt))
                 logger.info('PSNR-GT-NOISE: {:->4d}--> {:>10s} | {:<4.2f}dB'.format(idx, image_name_ext, psnr_gt_noisy))
 
-                save_img_path = os.path.join(img_dir, '{:s}_{:d}_{:.2f}.png'.format(img_name, epoch, psnr_gt))
+                save_img_path = os.path.join(img_dir, '{:s}_{:d}_{:.2f}.png'.format(img_name, current_step, psnr_gt))
                 util.imsave(E_img, save_img_path)
 
                 psnr_gt_vals.append(psnr_gt)
