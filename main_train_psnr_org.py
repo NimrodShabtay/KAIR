@@ -9,7 +9,6 @@ import logging
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 import torch
-import matplotlib.pyplot as plt
 
 from utils import utils_logger
 from utils import utils_image as util
@@ -19,7 +18,7 @@ from utils.utils_dist import get_dist_info, init_dist
 from data.select_dataset import define_Dataset
 from models.select_model import define_Model
 
-from utils.dip_utils import *
+
 '''
 # --------------------------------------------
 # training code for MSRResNet
@@ -132,22 +131,18 @@ def main(json_path='options/train_msrresnet_psnr.json'):
                                           pin_memory=True,
                                           sampler=train_sampler)
             else:
-                # train_loader = DataLoader(train_set,
-                #                           batch_size=dataset_opt['dataloader_batch_size'],
-                #                           shuffle=dataset_opt['dataloader_shuffle'],
-                #                           num_workers=dataset_opt['dataloader_num_workers'],
-                #                           drop_last=True,
-                #                           pin_memory=True)
                 train_loader = DataLoader(train_set,
                                           batch_size=dataset_opt['dataloader_batch_size'],
                                           shuffle=dataset_opt['dataloader_shuffle'],
-                                          num_workers=dataset_opt['dataloader_num_workers'])
+                                          num_workers=dataset_opt['dataloader_num_workers'],
+                                          drop_last=True,
+                                          pin_memory=True)
 
         elif phase == 'test':
             test_set = define_Dataset(dataset_opt)
             test_loader = DataLoader(test_set, batch_size=1,
                                      shuffle=False, num_workers=1,
-                                     drop_last=False)
+                                     drop_last=False, pin_memory=True)
         else:
             raise NotImplementedError("Phase [%s] is not recognized." % phase)
 
@@ -169,9 +164,6 @@ def main(json_path='options/train_msrresnet_psnr.json'):
     # ----------------------------------------
     '''
 
-    psnr_gt_vals = []
-    psnr_noise_vals = []
-    loss_vals = []
     for epoch in range(1000000):  # keep running
         for i, train_data in enumerate(train_loader):
 
@@ -179,7 +171,7 @@ def main(json_path='options/train_msrresnet_psnr.json'):
 
             # -------------------------------
             # 1) update learning rate
-            # ------------------------------
+            # -------------------------------
             model.update_learning_rate(current_step)
 
             # -------------------------------
@@ -212,52 +204,45 @@ def main(json_path='options/train_msrresnet_psnr.json'):
             # -------------------------------
             # 6) testing
             # -------------------------------
-            if current_step % opt['train']['checkpoint_test'] == 1 and opt['rank'] == 0:
-                idx = 1
-                image_name_ext = os.path.basename(train_data['L_path'][0])
-                img_name, ext = os.path.splitext(image_name_ext)
+            if current_step % opt['train']['checkpoint_test'] == 0 and opt['rank'] == 0:
 
-                img_dir = os.path.join(opt['path']['images'], img_name)
-                util.mkdir(img_dir)
+                avg_psnr = 0.0
+                idx = 0
 
-                model.feed_data(train_data)
-                model.test()
+                for test_data in test_loader:
+                    idx += 1
+                    image_name_ext = os.path.basename(test_data['L_path'][0])
+                    img_name, ext = os.path.splitext(image_name_ext)
 
-                visuals = model.current_visuals()
-                E_img = util.tensor2uint(visuals['E'])
-                H_img = util.tensor2uint(visuals['H'])
-                GT_img = util.tensor2uint(visuals['GT'])
-                # -----------------------
-                # save estimated image E
-                # -----------------------
-                # save_img_path = os.path.join(img_dir, '{:s}_{:d}.png'.format(img_name, epoch))
-                # util.imsave(E_img, save_img_path)
+                    img_dir = os.path.join(opt['path']['images'], img_name)
+                    util.mkdir(img_dir)
 
-                # save_img_GT_path = os.path.join(img_dir, '{:s}.png'.format(img_name))
-                # util.imsave(GT_img, save_img_GT_path)
-                #
-                # save_img_H_path = os.path.join(img_dir, '{:s}_noise.png'.format(img_name))
-                # util.imsave(H_img, save_img_H_path)
+                    model.feed_data(test_data)
+                    model.test()
 
-                # -----------------------
-                # calculate PSNR
-                # -----------------------
-                psnr_gt = util.calculate_psnr(E_img, GT_img, border=border)
-                psnr_gt_noisy = util.calculate_psnr(E_img, H_img, border=border)
+                    visuals = model.current_visuals()
+                    E_img = util.tensor2uint(visuals['E'])
+                    H_img = util.tensor2uint(visuals['H'])
 
-                logger.info('PSNR-GT: {:->4d}--> {:>10s} | {:<4.2f}dB'.format(idx, image_name_ext, psnr_gt))
-                logger.info('PSNR-GT-NOISE: {:->4d}--> {:>10s} | {:<4.2f}dB'.format(idx, image_name_ext, psnr_gt_noisy))
+                    # -----------------------
+                    # save estimated image E
+                    # -----------------------
+                    save_img_path = os.path.join(img_dir, '{:s}_{:d}.png'.format(img_name, current_step))
+                    util.imsave(E_img, save_img_path)
 
-                save_img_path = os.path.join(img_dir, '{:s}_{:d}_{:.2f}.png'.format(img_name, epoch, psnr_gt))
-                util.imsave(E_img, save_img_path)
+                    # -----------------------
+                    # calculate PSNR
+                    # -----------------------
+                    current_psnr = util.calculate_psnr(E_img, H_img, border=border)
 
-                psnr_gt_vals.append(psnr_gt)
-                psnr_noise_vals.append(psnr_gt_noisy)
-                loss_vals.append(model.current_log()['G_loss'])
+                    logger.info('{:->4d}--> {:>10s} | {:<4.2f}dB'.format(idx, image_name_ext, current_psnr))
 
-                plot_training_curves(loss_vals, psnr_gt_vals, psnr_noise_vals, img_dir)
+                    avg_psnr += current_psnr
 
+                avg_psnr = avg_psnr / idx
+
+                # testing log
+                logger.info('<epoch:{:3d}, iter:{:8,d}, Average PSNR : {:<.2f}dB\n'.format(epoch, current_step, avg_psnr))
 
 if __name__ == '__main__':
     main()
-

@@ -2,7 +2,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 from torch.optim import lr_scheduler
-from torch.optim import Adam, AdamW
+from torch.optim import Adam
 
 from models.select_network import define_G
 from models.model_base import ModelBase
@@ -115,11 +115,6 @@ class ModelPlain(ModelBase):
             self.G_optimizer = Adam(G_optim_params, lr=self.opt_train['G_optimizer_lr'],
                                     betas=self.opt_train['G_optimizer_betas'],
                                     weight_decay=self.opt_train['G_optimizer_wd'])
-
-        elif self.opt_train['G_optimizer_type'] == 'adamW':
-                self.G_optimizer = AdamW(G_optim_params, lr=self.opt_train['G_optimizer_lr'],
-                                        betas=self.opt_train['G_optimizer_betas'],
-                                        weight_decay=self.opt_train['G_optimizer_wd'])
         else:
             raise NotImplementedError
 
@@ -153,7 +148,6 @@ class ModelPlain(ModelBase):
     # ----------------------------------------
     def feed_data(self, data, need_H=True):
         self.L = data['L'].to(self.device)
-        self.GT = data['GT']
         if need_H:
             self.H = data['H'].to(self.device)
 
@@ -229,7 +223,6 @@ class ModelPlain(ModelBase):
         out_dict = OrderedDict()
         out_dict['L'] = self.L.detach()[0].float().cpu()
         out_dict['E'] = self.E.detach()[0].float().cpu()
-        out_dict['GT'] = self.GT.detach()[0].float().cpu()
         if need_H:
             out_dict['H'] = self.H.detach()[0].float().cpu()
         return out_dict
