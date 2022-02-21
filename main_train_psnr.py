@@ -5,8 +5,8 @@ import time
 import random
 import numpy as np
 from collections import OrderedDict
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 import logging
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler

@@ -112,6 +112,7 @@ class DatasetDnCNNDIP(DatasetDnCNN):
         self.GT = util.uint2tensor3(self.GT).detach()
         self.net_input = get_noise(self.n_channels, 'noise', (self.GT.shape[1], self.GT.shape[2])).detach()
         self.noise = torch.randn(*self.GT.shape).mul_(self.sigma / 255.0).detach()
+        self.img_H = self.GT.clone().add_(self.noise).detach()
 
     def plot_images_before_start(self):
         image_name_ext = os.path.basename(self.H_path)
@@ -144,26 +145,25 @@ class DatasetDnCNNDIP(DatasetDnCNN):
             rnd_w = random.randint(0, max(0, W - self.patch_size))
 
             img_GT = self.GT[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
-            img_H = self.GT.clone().add_(self.noise).detach()[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
+            img_H = self.img_H[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
             img_L = self.net_input[:, rnd_h: rnd_h + self.patch_size, rnd_w: rnd_w + self.patch_size]
 
             # --------------------------------
             # For using resize
             # --------------------------------
             # img_GT = self.GT
-            # img_H = img_GT.clone().add_(self.noise).detach()
+            # img_H = self.img_H
             # img_L = self.net_input
 
             # ------------------------------------------
             # Split the images to 4 patch sizes
             # ------------------------------------------
-            img_GT = self.GT[:, (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
-                     (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
-            img_H = self.GT.clone().add_(self.noise).detach()[:,
-                    (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
-                    (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
-            img_L = self.net_input[:, (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
-                     (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
+            # img_GT = self.GT[:, (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
+            #          (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
+            # img_H = self.img_H[:, (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
+            #         (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
+            # img_L = self.net_input[:, (index // 2) * self.patch_size: ((index // 2) + 1) * self.patch_size,
+            #          (index % 2) * self.patch_size: ((index % 2) + 1) * self.patch_size]
 
         return {'L': img_L, 'H': img_H, 'GT': img_GT, 'H_path': GT_path, 'L_path': L_path}
 

@@ -1,7 +1,7 @@
 {
-  "task": "random_crops_mid_capacity_no_batch"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
+  "task": "random_crops_mid_capacity_emb_180"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
   , "model": "plain" // "plain" | "plain2" if two inputs
-  , "gpu_ids": [1]
+  , "gpu_ids": [2]
   , "dist": true
 
   , "n_channels": 3  // broadcast to "datasets", 1 for grayscale, 3 for color
@@ -25,7 +25,7 @@
 
       , "dataloader_shuffle": false
       , "dataloader_num_workers": 0
-      , "dataloader_batch_size": 4      // batch size 1 | 16 | 32 | 48 | 64 | 128. Total batch size =1x8=8 in SwinIR
+      , "dataloader_batch_size": 1      // batch size 1 | 16 | 32 | 48 | 64 | 128. Total batch size =1x8=8 in SwinIR
     }
   }
 
@@ -33,11 +33,11 @@
     "net_type": "swinir" 
     , "upscale": 1 
     , "in_chans": 3
-    , "img_size": 256
+    , "img_size": 512
     , "window_size": 8  
     , "img_range": 1.0 
     , "depths": [6, 6, 6]
-    , "embed_dim": 90
+    , "embed_dim": 180
     , "num_heads": [6, 6, 6]
     , "mlp_ratio": 2 
     , "upsampler": null                 // "pixelshuffle" | "pixelshuffledirect" | "nearest+conv" | null
