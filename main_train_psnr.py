@@ -5,8 +5,7 @@ import time
 import random
 import numpy as np
 from collections import OrderedDict
-# import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 import logging
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
@@ -207,9 +206,9 @@ def main(json_path='options/train_msrresnet_psnr.json'):
             # -------------------------------
             # 5) save model
             # -------------------------------
-            if current_step % opt['train']['checkpoint_save'] == 0 and opt['rank'] == 0:
-                logger.info('Saving the model.')
-                model.save(current_step)
+            # if current_step % opt['train']['checkpoint_save'] == 0 and opt['rank'] == 0:
+            #     logger.info('Saving the model.')
+            #     model.save(current_step)
 
             # -------------------------------
             # 6) testing

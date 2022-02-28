@@ -1,7 +1,7 @@
 {
-  "task": "random_crops_mid_capacity_emb_180"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
+  "task": "random_crop_high_capacity"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
   , "model": "plain" // "plain" | "plain2" if two inputs
-  , "gpu_ids": [2]
+  , "gpu_ids": [4]
   , "dist": true
 
   , "n_channels": 3  // broadcast to "datasets", 1 for grayscale, 3 for color
@@ -36,9 +36,9 @@
     , "img_size": 512
     , "window_size": 8  
     , "img_range": 1.0 
-    , "depths": [6, 6, 6]
+    , "depths": [6, 6, 6, 6]
     , "embed_dim": 180
-    , "num_heads": [6, 6, 6]
+    , "num_heads": [6, 6, 6, 6]
     , "mlp_ratio": 2 
     , "upsampler": null                 // "pixelshuffle" | "pixelshuffledirect" | "nearest+conv" | null
     , "resi_connection": "1conv"        // "1conv" | "3conv"
@@ -70,7 +70,7 @@
     , "E_param_strict": true
 
     , "checkpoint_test": 100           // for testing
-    , "checkpoint_save": 5000           // for saving model
+    , "checkpoint_save": 50000           // for saving model
     , "checkpoint_print": 100           // for print
   }
 }
