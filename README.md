@@ -1,3 +1,14 @@
+## My modifications
+* `data/dataset_dncnn.py` - add `DatasetDnCNNDIP` which is the loading mechanism for DIP set-up.
+* `data/select_dataset.py` - change chosen dataset for color denoising to `DatasetDnCNNDIP`.
+* `options/swinir/train_swinir_denoising_color.json` - the JSON configuration file for running experiments.
+* `utils/dip_utils.py` - copying some of the functions from original dip code to analyze it with SwinIR
+* `main_train_psnr.py` - modify the training code to DIP setup and visualize intermediate results.
+
+*The entrypoint is `main_train_psnr.py`* <br>
+To run an experiment use the following command:<br> `python main_train_psnr.py --opt options/swinir/train_swinir_denoising_color.json` 
+
+
 ## Training and testing codes for USRNet, DnCNN, FFDNet, SRMD, DPSR, MSRResNet, ESRGAN, BSRGAN, SwinIR, VRT
 [![download](https://img.shields.io/github/downloads/cszn/KAIR/total.svg)](https://github.com/cszn/KAIR/releases) ![visitors](https://visitor-badge.glitch.me/badge?page_id=cszn/KAIR) 
 
