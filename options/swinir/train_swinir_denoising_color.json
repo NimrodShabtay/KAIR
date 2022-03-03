@@ -1,7 +1,7 @@
 {
-  "task": "random_crop_high_capacity"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
+  "task": "resize"     //  color Gaussian denoising for noise level 15/25/50. root/task/images-models-options
   , "model": "plain" // "plain" | "plain2" if two inputs
-  , "gpu_ids": [4]
+  , "gpu_ids": [0]
   , "dist": true
 
   , "n_channels": 3  // broadcast to "datasets", 1 for grayscale, 3 for color
@@ -19,7 +19,7 @@
       , "dataroot_H": "trainsets/trainH"// path of H training dataset. DIV2K (800 training images) + Flickr2K (2650 images) + BSD500 (400 training&testing images) + WED(4744 images) in SwinIR
       , "dataroot_L": null              // path of L training dataset
       , "input_depth": 3               // DIP
-      , "H_size": 128                   // patch_size
+      , "H_size": 256                   // patch_size
       , "sigma": 25                     //  15 | 25 | 50. We fine-tune sigma=25/50 models from sigma=15 model, so that `G_optimizer_lr` and `G_scheduler_milestones` can be halved to save time.
       , "sigma_test": 25                //
 
@@ -33,12 +33,12 @@
     "net_type": "swinir" 
     , "upscale": 1 
     , "in_chans": 3
-    , "img_size": 512
+    , "img_size": 256
     , "window_size": 8  
     , "img_range": 1.0 
-    , "depths": [6, 6, 6, 6]
-    , "embed_dim": 180
-    , "num_heads": [6, 6, 6, 6]
+    , "depths": [6, 6, 6]
+    , "embed_dim": 90
+    , "num_heads": [6, 6, 6]
     , "mlp_ratio": 2 
     , "upsampler": null                 // "pixelshuffle" | "pixelshuffledirect" | "nearest+conv" | null
     , "resi_connection": "1conv"        // "1conv" | "3conv"
